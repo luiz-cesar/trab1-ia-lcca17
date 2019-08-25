@@ -67,20 +67,61 @@ def depthFirstSearch(problem):
     """
     "*** YOUR CODE HERE ***"
 
-    states = [(problem.getStartState(), 0, 0)]
-        
-    while (not problem.isGoalState(states[-1][0])):
-        next = reduce(lambda item, prev: item if item[2] < prev[2] else prev, problem.getSuccessors(problem.getStartState()))
-        print next
-        states.append(next)
-    return states        
+    states = []
+    successors = Stack()
+    successors.push((problem.getStartState(), 0, 0))
+
+    crossedStates = []
+
+    while (1):
+        current = successors.pop()
+
+        if not current[0] in crossedStates:
+            crossedStates.append(current[0])
+            states.append(current)
+            if problem.isGoalState(current[0]):
+                break
+            newSuccessors = problem.getSuccessors(current[0])
+            if len(newSuccessors) > 0:
+                for item in newSuccessors:
+                    successors.push(item)
+            else:
+                states.pop(-1)
+
+
+    return map(lambda item: item[1], states[1:])
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
-    
 
+    # Fila de sucessores que contera somente os nodos nao percorridos
+    successors = Queue()
+    # O pai eh adicionado a tupla dos nodos
+    successors.push((problem.getStartState(), 0, 0, None))
 
-    util.raiseNotDefined()
+    # Lista para verificar se o nodo ja foi percorrido em algum momento
+    crossedStates = []
+
+    # O estado final que sera utilizado para encontrar o caminho percorrido
+    final_state = None
+
+    while (not final_state):
+        current = successors.pop()
+        if(not current[0] in crossedStates):
+            if problem.isGoalState(current[0]):
+                final_state = current
+            else:
+                crossedStates.append(current[0])
+                for successor in problem.getSuccessors(current[0]):
+                    successors.push(successor + (current,))
+
+    # O caminho percorrido para chegar ao estado final
+    final_path = []
+    while(final_state[3] != None):
+        final_path.insert(0, final_state[1])
+        final_state = final_state[3]
+    return final_path
+
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
@@ -106,4 +147,3 @@ dfs = depthFirstSearch
 astar = aStarSearch
 ucs = uniformCostSearch
 
-  
