@@ -52,44 +52,37 @@ def tinyMazeSearch(problem):
     return  [s, s, w, s, w, w, s, w]
 
 def depthFirstSearch(problem):
-    """
-    Search the deepest nodes in the search tree first.
+    """Search the deepest nodes in the search tree first."""
 
-    Your search algorithm needs to return a list of actions that reaches the
-    goal. Make sure to implement a graph search algorithm.
-
-    To get started, you might want to try some of these simple commands to
-    understand the search problem that is being passed in:
-
-    print "Start:", problem.getStartState()
-    print "Is the start a goal?", problem.isGoalState(problem.getStartState())
-    print "Start's successors:", problem.getSuccessors(problem.getStartState())
-    """
-    "*** YOUR CODE HERE ***"
-
-    states = []
+    # Pilha de sucessores que sempre removera os nodos mais profundos antes
     successors = Stack()
-    successors.push((problem.getStartState(), 0, 0))
-
+    # O pai eh adicionado a tupla dos nodos
+    successors.push((problem.getStartState(), 0, 0, None))
+    # O estado final que sera utilizado para encontrar o caminho percorrido
+    final_state = None
+    # Lista para verificar se o nodo ja foi percorrido em algum momento
     crossedStates = []
 
-    while (1):
+    while (not final_state):
+        # Remove e utiliza o nodo mais profundo
         current = successors.pop()
-
+        # Se ele ainda nao foi percorrido
         if not current[0] in crossedStates:
-            crossedStates.append(current[0])
-            states.append(current)
+            # Verifica se eh o nodo final
             if problem.isGoalState(current[0]):
-                break
-            newSuccessors = problem.getSuccessors(current[0])
-            if len(newSuccessors) > 0:
-                for item in newSuccessors:
-                    successors.push(item)
+                final_state = current
             else:
-                states.pop(-1)
+                # Senao abre os sucessores e para cada um adiciona a pilha com o pai(nodo atual)
+                crossedStates.append(current[0])
+                for item in problem.getSuccessors(current[0]):
+                    successors.push(item + (current,))
 
-
-    return map(lambda item: item[1], states[1:])
+    # Percorre o caminho do estado final, percorrendo os pais
+    final_path = []
+    while(final_state[3] != None):
+        final_path.insert(0, final_state[1])
+        final_state = final_state[3]
+    return final_path
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
@@ -98,24 +91,27 @@ def breadthFirstSearch(problem):
     successors = Queue()
     # O pai eh adicionado a tupla dos nodos
     successors.push((problem.getStartState(), 0, 0, None))
-
+    # O estado final que sera utilizado para encontrar o caminho percorrido
+    final_state = None
     # Lista para verificar se o nodo ja foi percorrido em algum momento
     crossedStates = []
 
-    # O estado final que sera utilizado para encontrar o caminho percorrido
-    final_state = None
 
     while (not final_state):
+        # Remove e utiliza o nodo menos profundo que ainda nao foi percorrido
         current = successors.pop()
+        # Se ele ainda nao foi percorrido anteriormente
         if(not current[0] in crossedStates):
+            # Verifica se eh o nodo final
             if problem.isGoalState(current[0]):
                 final_state = current
             else:
+                # Senao abre os sucessores e para cada um adiciona a pilha com o pai(nodo atual)
                 crossedStates.append(current[0])
                 for successor in problem.getSuccessors(current[0]):
                     successors.push(successor + (current,))
 
-    # O caminho percorrido para chegar ao estado final
+    # Percorre o caminho do estado final, percorrendo os pais
     final_path = []
     while(final_state[3] != None):
         final_path.insert(0, final_state[1])
@@ -125,8 +121,34 @@ def breadthFirstSearch(problem):
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # Fila de sucessores que contera somente os nodos nao percorridos
+    successors = PriorityQueue()
+    # O pai eh adicionado a tupla dos nodos
+    successors.push((problem.getStartState(), 0, 0, None), 0)
+    # O estado final que sera utilizado para encontrar o caminho percorrido
+    final_state = None
+    # Lista para verificar se o nodo ja foi percorrido em algum momento
+    crossedStates = []
+
+    while (not final_state):
+        current = successors.pop()
+        # Se ele ainda nao foi percorrido anteriormente
+        if(not current[0] in crossedStates):
+            # Verifica se eh o nodo final
+            if problem.isGoalState(current[0]):
+                final_state = current
+            else:
+                # Senao abre os sucessores e para cada um adiciona a pilha com o pai(nodo atual)
+                crossedStates.append(current[0])
+                for successor in problem.getSuccessors(current[0]):
+                    successors.push((successor[0], successor[1], successor[2] + current[2], current), successor[2] + current[2])
+
+    # Percorre o caminho do estado final, percorrendo os pais
+    final_path = []
+    while(final_state[3] != None):
+        final_path.insert(0, final_state[1])
+        final_state = final_state[3]
+    return final_path
 
 def nullHeuristic(state, problem=None):
     """
@@ -137,8 +159,35 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # Fila de sucessores que contera somente os nodos nao percorridos
+    successors = PriorityQueue()
+    # O pai eh adicionado a tupla dos nodos
+    successors.push((problem.getStartState(), 0, 0, None), heuristic(problem.getStartState(), problem))
+    # O estado final que sera utilizado para encontrar o caminho percorrido
+    final_state = None
+    # Lista para verificar se o nodo ja foi percorrido em algum momento
+    crossedStates = []
+
+
+    while (not final_state):
+        current = successors.pop()
+        # Se ele ainda nao foi percorrido anteriormente
+        if(not current[0] in crossedStates):
+            # Verifica se eh o nodo final
+            if problem.isGoalState(current[0]):
+                final_state = current
+            else:
+                # Senao abre os sucessores e para cada um adiciona a pilha com o pai(nodo atual)
+                crossedStates.append(current[0])
+                for successor in problem.getSuccessors(current[0]):
+                    successors.push((successor[0], successor[1], successor[2] + current[2], current), successor[2] + current[2] + heuristic(successor[0], problem))
+
+    # Percorre o caminho do estado final, percorrendo os pais
+    final_path = []
+    while(final_state[3] != None):
+        final_path.insert(0, final_state[1])
+        final_state = final_state[3]
+    return final_path
 
 
 # Abbreviations
